@@ -3,11 +3,14 @@ package com.ray.coolmall;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
+
+import com.ray.coolmall.serialport.FrameOrder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Instrumentation test, which will execute on an Android device.
@@ -22,5 +25,11 @@ public class ExampleInstrumentedTest {
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         assertEquals("com.ray.coolmall", appContext.getPackageName());
+    }
+    @Test
+    public void  comOrder()throws Exception {
+      String str= FrameOrder.getWriteToStorage(0);
+        System.out.println(str);
+        Log.i("abcd",str);
     }
 }

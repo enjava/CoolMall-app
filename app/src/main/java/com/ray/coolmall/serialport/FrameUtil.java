@@ -1,14 +1,12 @@
-package com.ray.coolmall.util;
+package com.ray.coolmall.serialport;
 
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Random;
 
 /**
  * Created by en on 2016/11/2.
  */
-public class ThUtil {
-    private static final String comConstant="4546CB";
+public class FrameUtil {
     //java CRC16校验
     private static int get_crc16 (byte[] bufData, int buflen, byte[] pcrc)
     {
@@ -71,7 +69,7 @@ public class ThUtil {
     }
 
     // 从十六进制字符串到字节数组转换
-    public static byte[] hexString2Bytes(String hexstr) {
+    public static byte[] hexStringToBytes(String hexstr) {
         hexstr=replase(hexstr);
         byte[] b = new byte[hexstr.length() / 2];
         int j = 0;
@@ -119,14 +117,14 @@ public class ThUtil {
             return true;
     }
 
-    private static String replase(String str){
+    public static String replase(String str){
         if (isEmpty(str))
             return str;
         return str=str.replace("　","").replace("，","").replace(",","").replace(" ","");
     }
 
     public  static String getCRCStr(String str){
-       return str+" "+getCRC(hexString2Bytes(str)).toUpperCase();
+       return str+" "+getCRC(hexStringToBytes(str)).toUpperCase();
    }
 
     //为16进制字符串中间加空格
@@ -155,38 +153,16 @@ public class ThUtil {
         String a="";
         String b="";
         str=replase(str);
-        b=getCRC(hexString2Bytes(str.substring(0,str .length()-4))).toUpperCase();
+        b=getCRC(hexStringToBytes(str.substring(0,str .length()-4))).toUpperCase();
         a=str.substring(str.length()-4, str .length());
        if ((a.toUpperCase()).equals(replase(b.toUpperCase())))
            return true;
         return false;
     }
-    //帧编号
-    public static String frameNumber(int i){
-        return hiString2Bytes(i);
+
+    public static int nextInt() {
+        Random rand = new Random();
+        int tmp = Math.abs(rand.nextInt());
+        return tmp % (99999999 - 10000000 + 1) + 10000000;
     }
-
-    //同步时间
-    public static String synTime(Date time, int itimes){
-
-        String frameNumber=hiString2Bytes(itimes);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String dateString = formatter.format(time);
-        String year=dateString.substring(0,4);
-        String month=dateString.substring(4,6);
-        String day= dateString.substring(6,8);
-        String h= dateString.substring(8,10);
-        String m= dateString.substring(10,12);
-        String s= dateString.substring(12,14);
-        year=hiString2Bytes(Integer.parseInt(year));
-        month=toHexString(Byte.parseByte(month));
-        day=toHexString(Byte.parseByte(day));
-        h=toHexString(Byte.parseByte(h));
-        m=toHexString(Byte.parseByte(m));
-        s=toHexString(Byte.parseByte(s));
-        String ml=comConstant+frameNumber+"37"+"0700"+year+month+day+h+m+s;
-        return ml;
-
-    }
-
 }

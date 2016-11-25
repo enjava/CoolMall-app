@@ -28,7 +28,7 @@ public class SerialPortUtil {
     private OnDataReceiveListener onDataReceiveListener = null;
     private boolean isStop = false;
 
-    public SerialPortUtil( String path) {
+    public SerialPortUtil(String path) {
         this.path=path;
     }
 
@@ -97,7 +97,7 @@ public class SerialPortUtil {
                 try {
                     if (mInputStream == null)
                         return;
-                    byte[] buffer = new byte[512];
+                    byte[] buffer = new byte[256];
                     size=   mInputStream.read(buffer);
 
                     if (size > 0) {
@@ -108,7 +108,7 @@ public class SerialPortUtil {
                             onDataReceiveListener.onDataReceive(buffer, size);
                         }
                     }
-                    Thread.sleep(5);
+                    //Thread.sleep(5);
                 } catch (Exception e) {
                     e.printStackTrace();
                     return;
