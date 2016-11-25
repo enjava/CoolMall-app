@@ -147,7 +147,6 @@ public class ComActivity extends Activity {
         if (serialport != null) {
             serialport.closeSerialPort();
             initSerialport(comPath);
-            //更改串口
         }
         else {
             initSerialport(comPath);
