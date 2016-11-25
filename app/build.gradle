@@ -1,0 +1,39 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "24.0.1"
+    defaultConfig {
+        applicationId "com.ray.coolmall"
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        ndk {
+            moduleName "serialportcpp"
+        }
+        sourceSets.main {
+            jni.srcDirs= []
+            jniLibs.srcDir "src/main/libs"
+        }
+    }
+    buildTypes {
+        release {
+            //代码混淆开关，一定要注意现在已经使用minifyEnabled代替runProguard了
+            
+            minifyEnabled true
+            // proguard-rules.pro 是当前使用的混淆文件（Eclipse中的proguard.cfg)
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:22.2.1'
+    testCompile 'junit:junit:4.12'
+}

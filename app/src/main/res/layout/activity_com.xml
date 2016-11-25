@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/activity_main"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+    <TextView
+        android:text="返回结果"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#000"
+        android:id="@+id/textView3" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:hint="接收主板返回的结果"
+        android:textSize="12dp"
+        android:id="@+id/editText3"
+        android:layout_weight="0.12" />
+
+    <TextView
+        android:text="命令"
+        android:textSize="18dp"
+        android:textColor="#000"
+        android:gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView4" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:textSize="12dp"
+        android:hint="要发送的命令，勾选【不需要CRC校验】时，内部已经做CRC校验，取消勾选时，一定要是CRC校验后的命令"
+        android:id="@+id/editText4"
+        android:layout_weight="0.08" />
+    <CheckBox
+        android:text="不需要CRC校验"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:id="@+id/cb" />
+    <Button
+        android:text="发送命令"
+        android:textColor="#000"
+        android:onClick="sendComand"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button" />
+
+    <Button
+        android:text="同步时间"
+        android:textColor="#000"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="synTime"
+        android:id="@+id/button2" />
+    <TextView
+        android:text="设置串口名"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:id="@+id/textView" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+    <EditText
+        android:layout_width="201dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="/dev/ttyS2"
+        android:id="@+id/dtced" />
+
+        <Button
+            android:text="更改"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:onClick="setComName"
+            android:id="@+id/button3" />
+    </LinearLayout>
+
+
+
+</LinearLayout>
