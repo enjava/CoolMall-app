@@ -40,7 +40,7 @@ public class LogWriterUtil {
             String str =e.getMessage();
             Log.d("",str);
         }
-        df = new SimpleDateFormat("[MM-dd hh:mm:ss:SSS]:");
+        df = new SimpleDateFormat("[MMdd HHmmss:SSS]:");
 
         return mLogWriter;
     }

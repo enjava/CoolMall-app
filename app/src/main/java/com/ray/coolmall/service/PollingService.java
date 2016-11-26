@@ -72,18 +72,15 @@ public class PollingService extends Service {
      * @Author en
      * @Create 2016-11-26 上午 09:18:34
      */
-    int count = 0;
+    long count = 0;
 
     class PollingThread extends Thread {
         @Override
         public void run() {
             sendRollCommand();
-//            System.out.println("Polling...");
             count++;
-//            //当除计数能被5整时弹出通知
-//
+    //当除计数能被5整时弹出通知
             if (count % 5 == 0) {
-                count=0;
                 System.out.println("New message!"+count);
             }
         }

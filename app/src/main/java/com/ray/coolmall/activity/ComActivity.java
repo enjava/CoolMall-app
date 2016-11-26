@@ -190,7 +190,6 @@ public class ComActivity extends Activity {
     }
 
     public void log(String msg) {
-        //Log.d(TAG, msg);
         try {
             mLogWriter.print(msg);
         } catch (IOException e) {
