@@ -40,7 +40,7 @@ public class ComActivity extends Activity {
     private EditText mComName;
     private CheckBox mcb;
     private String comPath = "/dev/ttyS2";
-    private static int rollTimes ;
+    private static int rollTimes;
     //private boolean isStop = false;
     private Handler mHandler = new Handler() {
         @Override
@@ -78,7 +78,7 @@ public class ComActivity extends Activity {
         mComName = (EditText) findViewById(R.id.dtced);
         mcb = (CheckBox) findViewById(R.id.cb);
 
-        PollingUtils.startPollingService(this,500,PollingService.class, PollingService.ACTION);
+        PollingUtils.startPollingService(this, 500, PollingService.class, PollingService.ACTION);
     }
 
     public void sendComand(View v) {
@@ -122,7 +122,7 @@ public class ComActivity extends Activity {
             itimes = 0;
         SpUtil.putInt(this, Constants.FRAME_NUMBER, ++itimes);
         try {
-          //  backStr = "";
+            //  backStr = "";
             serialport.sendToPort(abc);
         } catch (Exception e) {
             ToastUtil.show(this, "更改时间失败");
@@ -140,36 +140,31 @@ public class ComActivity extends Activity {
                 for (int i = 0; i < size; i++) {
                     byt[i] = buffer[i];
                 }
-                String stringBack =FrameUtil.fomatStr16(FrameUtil.bytesToHexString(byt)).toUpperCase()+" " ;
+                String stringBack = FrameUtil.fomatStr16(FrameUtil.bytesToHexString(byt)).toUpperCase() + " ";
                 //log("stringBack:"+stringBack);
                 //仅检查头是不够的,有可能发送 45  或者45 46
-                if (stringBack.indexOf(FrameOrder.comHead)==0)
-                    backStr="";
+                if (stringBack.indexOf(FrameOrder.comHead) == 0)
+                    backStr = "";
                 backStr += stringBack;
-                log("backStr:"+backStr);
+                //log("backStr:"+backStr);
                 if (FrameUtil.checkBack(backStr)) {
-                    String arg=  backStr.trim();
+                    String arg = backStr.trim();
                     Message msg = Message.obtain();
                     msg.what = 0;
                     mHandler.sendMessage(msg);
-                    String [] args=arg.split(" ");
-
-                    if (args.length>4&&args[5].equals("02")){
-                        if (mLogWriter!=null)
-                        log("mLogWriter:"+arg);
+                    String[] args = arg.split(" ");
+                    if (args.length > 4 && args[5].equals("02")) {
+                        if (mLogWriter != null)
+                            log(arg);
                     }
                 }
 
             }
         });
 
-       if (serialport.getmSerialPort()!=null) {
-           new  PollingService().setSerialport(serialport);
-
-           ////根据某个特定的时间 date (Date 型) 计算
-           //Calendar specialDate = Calendar.getInstance();
-           //specialDate.setTime(date); //注意在此处将 specialDate 的值改为特定日期
-       }
+        if (serialport.getmSerialPort() != null) {
+            new PollingService().setSerialport(serialport);
+        }
 
     }
 
@@ -178,9 +173,8 @@ public class ComActivity extends Activity {
         //关闭串口
         if (serialport != null)
             serialport.closeSerialPort();
-        //isStop=true;
-        //this,200,PollingService.class, PollingService.ACTION
-        PollingUtils.stopPollingService(this,PollingService.class,PollingService.ACTION);
+
+        PollingUtils.stopPollingService(this, PollingService.class, PollingService.ACTION);
         super.onDestroy();
     }
 

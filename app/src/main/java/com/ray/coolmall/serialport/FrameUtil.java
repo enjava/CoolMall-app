@@ -148,7 +148,7 @@ public class FrameUtil {
 
    //判断返回的字符串是否完整
     public static boolean checkBack(String str){
-        if (isEmpty(str))
+        if(str.length()<20)
             return false;
         String a="";
         String b="";
