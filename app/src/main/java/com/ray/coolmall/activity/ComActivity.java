@@ -18,8 +18,10 @@ import com.ray.coolmall.R;
 import com.ray.coolmall.serialport.FrameOrder;
 import com.ray.coolmall.serialport.FrameUtil;
 import com.ray.coolmall.serialport.SerialPortUtil;
+import com.ray.coolmall.service.PollingService;
 import com.ray.coolmall.util.Constants;
 import com.ray.coolmall.util.LogWriterUtil;
+import com.ray.coolmall.util.PollingUtils;
 import com.ray.coolmall.util.SpUtil;
 import com.ray.coolmall.util.ToastUtil;
 
@@ -29,9 +31,9 @@ import java.util.Date;
 
 public class ComActivity extends Activity {
     private LogWriterUtil mLogWriter;
-    private ReadThread mReadThread;
+
     private static final String TAG = ComActivity.class.getSimpleName();
-    private SerialPortUtil serialport = null;
+    public static SerialPortUtil serialport = null;
     private String backStr = "";
     private EditText mBack_et;
     private EditText mOrder_et;
@@ -39,7 +41,7 @@ public class ComActivity extends Activity {
     private CheckBox mcb;
     private String comPath = "/dev/ttyS2";
     private static int rollTimes ;
-    private boolean isStop = false;
+    //private boolean isStop = false;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -50,7 +52,6 @@ public class ComActivity extends Activity {
                     backStr = "";
                     break;
                 default:
-
                     Log.i(TAG, "测试");
                     break;
             }
@@ -65,18 +66,19 @@ public class ComActivity extends Activity {
 
         File logf = new File(Environment.getExternalStorageDirectory()
                 + File.separator + "DemoLog.txt");
+
         try {
             mLogWriter = LogWriterUtil.open(logf.getAbsolutePath());
+
         } catch (IOException e) {
             Log.d(TAG, e.getMessage());
         }
-        mReadThread = new ReadThread();
-        isStop = false;
-        mReadThread.start();
         mBack_et = (EditText) findViewById(R.id.editText3);
         mOrder_et = (EditText) findViewById(R.id.editText4);
         mComName = (EditText) findViewById(R.id.dtced);
         mcb = (CheckBox) findViewById(R.id.cb);
+
+        PollingUtils.startPollingService(this,500,PollingService.class, PollingService.ACTION);
     }
 
     public void sendComand(View v) {
@@ -98,7 +100,7 @@ public class ComActivity extends Activity {
                 serialport.sendToPort(FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(orderStr)));
             else
                 serialport.sendToPort(FrameUtil.hexStringToBytes(orderStr));
-        } catch (IOException e) {
+        } catch (Exception e) {
             ToastUtil.show(this, "发送命令失败");
         }
     }
@@ -120,9 +122,9 @@ public class ComActivity extends Activity {
             itimes = 0;
         SpUtil.putInt(this, Constants.FRAME_NUMBER, ++itimes);
         try {
-            backStr = "";
+          //  backStr = "";
             serialport.sendToPort(abc);
-        } catch (IOException e) {
+        } catch (Exception e) {
             ToastUtil.show(this, "更改时间失败");
         }
 
@@ -138,24 +140,37 @@ public class ComActivity extends Activity {
                 for (int i = 0; i < size; i++) {
                     byt[i] = buffer[i];
                 }
-                String stringBack = FrameUtil.bytesToHexString(byt);
+                String stringBack =FrameUtil.fomatStr16(FrameUtil.bytesToHexString(byt)).toUpperCase()+" " ;
+                //log("stringBack:"+stringBack);
+                //仅检查头是不够的,有可能发送 45  或者45 46
                 if (stringBack.indexOf(FrameOrder.comHead)==0)
                     backStr="";
                 backStr += stringBack;
+                log("backStr:"+backStr);
                 if (FrameUtil.checkBack(backStr)) {
-                    String arg=  backStr;
+                    String arg=  backStr.trim();
                     Message msg = Message.obtain();
                     msg.what = 0;
                     mHandler.sendMessage(msg);
                     String [] args=arg.split(" ");
-                    if (args.length>5&&args[5]=="02"){
+
+                    if (args.length>4&&args[5].equals("02")){
                         if (mLogWriter!=null)
-                        log(arg);
+                        log("mLogWriter:"+arg);
                     }
                 }
 
             }
         });
+
+       if (serialport.getmSerialPort()!=null) {
+           new  PollingService().setSerialport(serialport);
+
+           ////根据某个特定的时间 date (Date 型) 计算
+           //Calendar specialDate = Calendar.getInstance();
+           //specialDate.setTime(date); //注意在此处将 specialDate 的值改为特定日期
+       }
+
     }
 
     @Override
@@ -163,7 +178,9 @@ public class ComActivity extends Activity {
         //关闭串口
         if (serialport != null)
             serialport.closeSerialPort();
-        isStop=true;
+        //isStop=true;
+        //this,200,PollingService.class, PollingService.ACTION
+        PollingUtils.stopPollingService(this,PollingService.class,PollingService.ACTION);
         super.onDestroy();
     }
 
@@ -186,28 +203,4 @@ public class ComActivity extends Activity {
             Log.d(TAG, e.getMessage());
         }
     }
-
-    private class ReadThread extends Thread {
-
-        @Override
-        public void run() {
-            while (!isStop) {
-                try {
-                    rollTimes++;
-                    if (rollTimes>65500)
-                        rollTimes=0;
-                    byte [] bytes=FrameOrder.getBytesRoll(rollTimes);
-                    if (serialport.getmSerialPort()!=null)
-                        serialport.sendToPort(bytes);
-                   Thread.sleep(200);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (mLogWriter!=null)
-                        log("FrameOrder.getBytesRoll被打断");
-                    return;
-                }
-            }
-        }
-    }
-
 }

@@ -48,7 +48,7 @@ public class FrameUtil {
 
         byte[] bb = new byte[2];
         get_crc16(bytes, bytes.length, bb);
-        return Integer.toHexString((int)bb[0] & 0x000000ff)+" "+Integer.toHexString((int)bb[1] & 0x000000ff);
+        return bytesToHexString(bb);
     }
 
     //byte转换成16进制的字符串

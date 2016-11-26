@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 
 import android_serialport_api.SerialPort;
 
@@ -27,6 +28,8 @@ public class SerialPortUtil {
     private static SerialPortUtil portUtil;
     private OnDataReceiveListener onDataReceiveListener = null;
     private boolean isStop = false;
+
+    public static Date time=null;
 
     public SerialPortUtil(String path) {
         this.path=path;
@@ -57,10 +60,11 @@ public class SerialPortUtil {
             mSerialPort = new SerialPort(new File(path), baudrate,0);
             mOutputStream = mSerialPort.getOutputStream();
             mInputStream = mSerialPort.getInputStream();
-
+            //time
             mReadThread = new ReadThread();
             isStop = false;
             mReadThread.start();
+            time=new Date();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -72,7 +76,7 @@ public class SerialPortUtil {
 
      * @param order	待发送数据
      */
-    public  void sendToPort(byte[] order) throws IOException {
+    public synchronized void sendToPort(byte[] order) throws Exception {
 
         OutputStream out = null;
 
@@ -85,6 +89,7 @@ public class SerialPortUtil {
         } catch (IOException e) {
             throw new IOException();
         }
+        Thread.sleep(200);
     }
 
     private class ReadThread extends Thread {

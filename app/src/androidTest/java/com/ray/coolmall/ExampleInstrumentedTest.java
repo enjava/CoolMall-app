@@ -3,9 +3,8 @@ package com.ray.coolmall;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
-import com.ray.coolmall.serialport.FrameOrder;
+import com.ray.coolmall.serialport.FrameUtil;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,8 +27,11 @@ public class ExampleInstrumentedTest {
     }
     @Test
     public void  comOrder()throws Exception {
-      String str= FrameOrder.getWriteToStorage(0);
-        System.out.println(str);
-        Log.i("abcd",str);
+        String str="45 46 CB C3 00 02 24 00 01 00 00 00 06 00 00 00 EE 02 00 00 03 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 06";
+//        if (str.indexOf(FrameOrder.comHead)==0)
+//            str="";
+       boolean b= FrameUtil.checkBack(str);
+      System.out.println(b);
+
     }
 }
