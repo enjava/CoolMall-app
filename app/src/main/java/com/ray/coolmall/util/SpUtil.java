@@ -3,8 +3,6 @@ package com.ray.coolmall.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.Date;
-
 public class SpUtil {
 	private static SharedPreferences sp;
 	
@@ -112,9 +110,5 @@ public class SpUtil {
 		}
 		sp.edit().putInt(key, value).commit();
 	}
-	public static void putTime(Context ctx, String key, Date date){
-		if(sp == null){
-			sp = ctx.getSharedPreferences("config", Context.MODE_PRIVATE);
-		}
-	}
+
 }
