@@ -4,8 +4,10 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
+import com.ray.coolmall.application.MyApplication;
 import com.ray.coolmall.serialport.FrameOrder;
-import com.ray.coolmall.serialport.SerialPortUtil;
+
+import java.util.List;
 
 
 /**
@@ -15,11 +17,10 @@ import com.ray.coolmall.serialport.SerialPortUtil;
 
 public class PollingService extends Service {
     public static final String ACTION = "com.ray.coolmall.service.PollingService";
-    public static SerialPortUtil serialport = null;
-//    private Notification mNotification;
-//    private NotificationManager mManager;
-
-    private static int rollTimes =10000;
+   private List<String> channels;
+    private int listSize=-1;
+    private static int rollTimes = 10000;
+    private MyApplication myApplication;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -28,14 +29,15 @@ public class PollingService extends Service {
 
     @Override
     public void onCreate() {
-       // initNotifiManager();
+        // initNotifiManager();
         super.onCreate();
+        myApplication = (MyApplication) getApplication();
     }
 
     @Override
-    public int  onStartCommand(Intent intent, int flags, int startId) {
-         new PollingThread().start();
-        return super.onStartCommand(intent,flags,startId);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        new PollingThread().start();
+        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -53,13 +55,22 @@ public class PollingService extends Service {
     //弹出Notification
     private void sendRollCommand() {
         rollTimes++;
-        if (rollTimes>65500)
-            rollTimes=0;
+        if (rollTimes > 65500)
+            rollTimes = 0;
         try {
-            byte[] bytes = FrameOrder.getBytesRoll(rollTimes);
-            if (serialport.getmSerialPort() != null)
-                serialport.sendToPort(bytes);
-            //Thread.sleep(200);
+            if (listSize==-1||channels.size()>listSize){
+                channels=  myApplication.getChannels();
+                if (channels!=null){
+                    listSize++;
+                    byte[] bytes = FrameOrder.getBytesPanel(rollTimes,channels.get(listSize));
+                    myApplication.sendToPort(bytes, "30");
+
+                }
+            }
+            else {
+                byte[] bytes = FrameOrder.getBytesRoll(rollTimes);
+                myApplication.sendToPort(bytes, "02");
+            }
         } catch (Exception e) {
 
         }
@@ -79,20 +90,17 @@ public class PollingService extends Service {
         public void run() {
             sendRollCommand();
             count++;
-    //当除计数能被5整时弹出通知
+            //当除计数能被5整时弹出通知
             if (count % 5 == 0) {
-                System.out.println("New message!"+count);
+                System.out.println("New message!" + count);
             }
         }
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroy(){
         super.onDestroy();
+        myApplication.log("---------程序终止的时候执行-------");
         System.out.println("Service:onDestroy");
-    }
-
-    public void setSerialport(SerialPortUtil serialport) {
-        this.serialport = serialport;
     }
 }

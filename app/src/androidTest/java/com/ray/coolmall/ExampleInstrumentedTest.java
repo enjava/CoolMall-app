@@ -32,6 +32,13 @@ public class ExampleInstrumentedTest {
 //            str="";
        boolean b= FrameUtil.checkBack(str);
       System.out.println(b);
-
+    }
+    @Test
+    public  void  test(){
+        String[] strings4=new String[]{"A8", "16","00","00" };
+        String[] strings2=new String[]{"A8", "16","00","00" };
+        int i= FrameUtil.hiInt4String(strings2);
+        int i2= FrameUtil.hiInt4String(strings4);
+        System.out.println(i+" "+i2);
     }
 }

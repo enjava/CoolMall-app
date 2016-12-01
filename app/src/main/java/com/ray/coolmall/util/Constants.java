@@ -5,6 +5,15 @@ public class Constants {
 	 * 发送帧次数
 	 */
 	public static final String FRAME_NUMBER = "frame_number";
+	/**
+	 * 串口路径
+	 */
+	public static final String COM_PATH = "com_path";
+
+	/**
+	 * 货道
+	 */
+	public static final String CHANEL_NAME = "chanel_name";
 //
 //	/**
 //	 * 是否设置密码key

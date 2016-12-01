@@ -3,6 +3,8 @@ package com.ray.coolmall.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Set;
+
 public class SpUtil {
 	private static SharedPreferences sp;
 	
@@ -110,5 +112,18 @@ public class SpUtil {
 		}
 		sp.edit().putInt(key, value).commit();
 	}
-
+	public static void putSet(Context ctx,String key, Set<String> value){
+		// (存储节点文件名称,读写方式)
+		if(sp == null){
+			sp = ctx.getSharedPreferences("config", Context.MODE_PRIVATE);
+		}
+		sp.edit().putStringSet(key,value).commit();
+	}
+	public static Set<String> getSet(Context ctx,String key, Set<String> defValue){
+		// (存储节点文件名称,读写方式)
+		if(sp == null){
+			sp = ctx.getSharedPreferences("config", Context.MODE_PRIVATE);
+		}
+		return sp.getStringSet(key, defValue);
+	}
 }

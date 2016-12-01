@@ -6,7 +6,6 @@ package com.ray.coolmall.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -15,23 +14,21 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 
 import com.ray.coolmall.R;
+import com.ray.coolmall.application.MyApplication;
+import com.ray.coolmall.serialport.ChannelInfo;
 import com.ray.coolmall.serialport.FrameOrder;
 import com.ray.coolmall.serialport.FrameUtil;
 import com.ray.coolmall.serialport.SerialPortUtil;
 import com.ray.coolmall.service.PollingService;
 import com.ray.coolmall.util.Constants;
-import com.ray.coolmall.util.LogWriterUtil;
 import com.ray.coolmall.util.PollingUtils;
 import com.ray.coolmall.util.SpUtil;
 import com.ray.coolmall.util.ToastUtil;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 public class ComActivity extends Activity {
-    private LogWriterUtil mLogWriter;
-
     private static final String TAG = ComActivity.class.getSimpleName();
     public static SerialPortUtil serialport = null;
     private String backStr = "";
@@ -40,7 +37,8 @@ public class ComActivity extends Activity {
     private EditText mComName;
     private CheckBox mcb;
     private String comPath = "/dev/ttyS2";
-    private static int rollTimes;
+    private static int ROLLTIMES;
+    private MyApplication myApplication;
     //private boolean isStop = false;
     private Handler mHandler = new Handler() {
         @Override
@@ -58,27 +56,17 @@ public class ComActivity extends Activity {
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_com);
 
-        File logf = new File(Environment.getExternalStorageDirectory()
-                + File.separator + "DemoLog.txt");
-
-        try {
-            mLogWriter = LogWriterUtil.open(logf.getAbsolutePath());
-
-        } catch (IOException e) {
-            Log.d(TAG, e.getMessage());
-        }
         mBack_et = (EditText) findViewById(R.id.editText3);
         mOrder_et = (EditText) findViewById(R.id.editText4);
         mComName = (EditText) findViewById(R.id.dtced);
         mcb = (CheckBox) findViewById(R.id.cb);
-
-        PollingUtils.startPollingService(this, 500, PollingService.class, PollingService.ACTION);
+        myApplication= (MyApplication) this.getApplication();
+       // PollingUtils.startPollingService(this, 500, PollingService.class, PollingService.ACTION);
     }
 
     public void sendComand(View v) {
@@ -116,11 +104,12 @@ public class ComActivity extends Activity {
             return;
         }
         int itimes = SpUtil.getInt(this, Constants.FRAME_NUMBER, 0);
-        String ml = FrameOrder.getSynTime(itimes, new Date());
-        byte[] abc = FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(ml));
         if (itimes > 65000)
             itimes = 0;
         SpUtil.putInt(this, Constants.FRAME_NUMBER, ++itimes);
+        String ml = FrameOrder.getSynTime(itimes, new Date());
+        byte[] abc = FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(ml));
+
         try {
             //  backStr = "";
             serialport.sendToPort(abc);
@@ -154,22 +143,19 @@ public class ComActivity extends Activity {
                     mHandler.sendMessage(msg);
                     String[] args = arg.split(" ");
                     if (args.length > 4 && args[5].equals("02")) {
-                        if (mLogWriter != null)
-                            log(arg);
+
                     }
                 }
 
             }
         });
 
-        if (serialport.getmSerialPort() != null) {
-            new PollingService().setSerialport(serialport);
-        }
 
     }
 
     @Override
     protected void onDestroy() {
+        myApplication.log("关闭串口");
         //关闭串口
         if (serialport != null)
             serialport.closeSerialPort();
@@ -189,11 +175,12 @@ public class ComActivity extends Activity {
         ToastUtil.show(this, "串口更改成功");
     }
 
-    public void log(String msg) {
-        try {
-            mLogWriter.print(msg);
-        } catch (IOException e) {
-            Log.d(TAG, e.getMessage());
+    public void outGoods(View view) {
+//        byte[] bytes=FrameOrder.getBytesPanel(myApplication.spFrameNumber(),"A2");
+//         myApplication.sendToPort(bytes,"30");
+        Map<String,ChannelInfo> map= myApplication.getChannelInfoMap();
+        for(ChannelInfo obj : map.values()) {
+            System.out.println(obj.toString());
         }
     }
 }

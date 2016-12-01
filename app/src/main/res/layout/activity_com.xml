@@ -62,6 +62,13 @@
         android:layout_height="wrap_content"
         android:onClick="synTime"
         android:id="@+id/button2" />
+    <Button
+        android:text="C3"
+        android:textColor="#000"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="outGoods"
+        android:id="@+id/button4" />
     <TextView
         android:text="设置串口名"
         android:layout_width="match_parent"

@@ -89,7 +89,7 @@ public class SerialPortUtil {
         } catch (IOException e) {
             throw new IOException();
         }
-        Thread.sleep(200);
+        Thread.sleep(50);
     }
 
     private class ReadThread extends Thread {
