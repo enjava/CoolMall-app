@@ -69,6 +69,13 @@
         android:layout_height="wrap_content"
         android:onClick="outGoods"
         android:id="@+id/button4" />
+    <Button
+        android:text="CleanUp"
+        android:textColor="#000"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="cleanEvent"
+        android:id="@+id/button5" />
     <TextView
         android:text="设置串口名"
         android:layout_width="match_parent"

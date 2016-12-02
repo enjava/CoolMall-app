@@ -5,6 +5,10 @@ package com.ray.coolmall.activity;
  */
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,21 +21,14 @@ import com.ray.coolmall.R;
 import com.ray.coolmall.application.MyApplication;
 import com.ray.coolmall.serialport.ChannelInfo;
 import com.ray.coolmall.serialport.FrameOrder;
-import com.ray.coolmall.serialport.FrameUtil;
-import com.ray.coolmall.serialport.SerialPortUtil;
 import com.ray.coolmall.service.PollingService;
-import com.ray.coolmall.util.Constants;
 import com.ray.coolmall.util.PollingUtils;
-import com.ray.coolmall.util.SpUtil;
 import com.ray.coolmall.util.ToastUtil;
 
-import java.util.Date;
 import java.util.Map;
 
 public class ComActivity extends Activity {
     private static final String TAG = ComActivity.class.getSimpleName();
-    public static SerialPortUtil serialport = null;
-    private String backStr = "";
     private EditText mBack_et;
     private EditText mOrder_et;
     private EditText mComName;
@@ -39,15 +36,16 @@ public class ComActivity extends Activity {
     private String comPath = "/dev/ttyS2";
     private static int ROLLTIMES;
     private MyApplication myApplication;
-    //private boolean isStop = false;
+    private  Map<String ,ChannelInfo> map;
+    private MyReceiver receiveBroadCast;  //广播实例
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 0:
                     // 弹出对话框,提示用户更新
-                    mBack_et.setText(FrameUtil.fomatStr16(backStr).toUpperCase());
-                    backStr = "";
+                    //mBack_et.setText(FrameUtil.fomatStr16(backStr).toUpperCase());
+
                     break;
                 default:
                     Log.i(TAG, "测试");
@@ -58,129 +56,78 @@ public class ComActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_com);
-
         mBack_et = (EditText) findViewById(R.id.editText3);
         mOrder_et = (EditText) findViewById(R.id.editText4);
         mComName = (EditText) findViewById(R.id.dtced);
         mcb = (CheckBox) findViewById(R.id.cb);
         myApplication= (MyApplication) this.getApplication();
-       // PollingUtils.startPollingService(this, 500, PollingService.class, PollingService.ACTION);
+
+        // 注册广播接收
+        receiveBroadCast = new MyReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("tenray.outgoods.success");    //只有持有相同的action的接受者才能接收此广播
+        registerReceiver(receiveBroadCast, filter);
     }
 
     public void sendComand(View v) {
-        if (serialport == null) {
-            initSerialport(comPath);
-        }
-        if (serialport.getmSerialPort() == null) {
-            initSerialport(comPath);
-            ToastUtil.show(this, "串口打开失败，请检查串口设置是否正确");
-            return;
-        }
-        String orderStr = mOrder_et.getText().toString();
-        if (FrameUtil.isEmpty(orderStr)) {
-            ToastUtil.show(this, "发送命令不能为空");
-            return;
-        }
-        try {
-            if (mcb.isChecked())
-                serialport.sendToPort(FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(orderStr)));
-            else
-                serialport.sendToPort(FrameUtil.hexStringToBytes(orderStr));
-        } catch (Exception e) {
-            ToastUtil.show(this, "发送命令失败");
-        }
+
     }
 
     //同步时间
     public void synTime(View v) {
-        if (serialport == null) {
-            initSerialport(comPath);
-        }
-        if (serialport.getmSerialPort() == null) {
-            initSerialport(comPath);
-            ToastUtil.show(this, "串口打开失败，请检查串口设置是否正确");
-            return;
-        }
-        int itimes = SpUtil.getInt(this, Constants.FRAME_NUMBER, 0);
-        if (itimes > 65000)
-            itimes = 0;
-        SpUtil.putInt(this, Constants.FRAME_NUMBER, ++itimes);
-        String ml = FrameOrder.getSynTime(itimes, new Date());
-        byte[] abc = FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(ml));
-
-        try {
-            //  backStr = "";
-            serialport.sendToPort(abc);
-        } catch (Exception e) {
-            ToastUtil.show(this, "更改时间失败");
-        }
 
     }
 
-    //初始化串口
-    public void initSerialport(String comName) {
-        serialport = SerialPortUtil.getInstance(comName);
-        serialport.setOnDataReceiveListener(new SerialPortUtil.OnDataReceiveListener() {
-            @Override
-            public void onDataReceive(byte[] buffer, int size) {
-                byte[] byt = new byte[size];
-                for (int i = 0; i < size; i++) {
-                    byt[i] = buffer[i];
-                }
-                String stringBack = FrameUtil.fomatStr16(FrameUtil.bytesToHexString(byt)).toUpperCase() + " ";
-                //log("stringBack:"+stringBack);
-                //仅检查头是不够的,有可能发送 45  或者45 46
-                if (stringBack.indexOf(FrameOrder.comHead) == 0)
-                    backStr = "";
-                backStr += stringBack;
-                //log("backStr:"+backStr);
-                if (FrameUtil.checkBack(backStr)) {
-                    String arg = backStr.trim();
-                    Message msg = Message.obtain();
-                    msg.what = 0;
-                    mHandler.sendMessage(msg);
-                    String[] args = arg.split(" ");
-                    if (args.length > 4 && args[5].equals("02")) {
-
-                    }
-                }
-
-            }
-        });
-
-
-    }
 
     @Override
     protected void onDestroy() {
         myApplication.log("关闭串口");
         //关闭串口
-        if (serialport != null)
-            serialport.closeSerialPort();
-
         PollingUtils.stopPollingService(this, PollingService.class, PollingService.ACTION);
+        unregisterReceiver(receiveBroadCast);
         super.onDestroy();
     }
 
     public void setComName(View view) {
-        comPath = mComName.getText().toString().trim();
-        if (serialport != null) {
-            serialport.closeSerialPort();
-            initSerialport(comPath);
-        } else {
-            initSerialport(comPath);
-        }
+
         ToastUtil.show(this, "串口更改成功");
     }
-
+    int churat=6;
     public void outGoods(View view) {
-//        byte[] bytes=FrameOrder.getBytesPanel(myApplication.spFrameNumber(),"A2");
-//         myApplication.sendToPort(bytes,"30");
-        Map<String,ChannelInfo> map= myApplication.getChannelInfoMap();
-        for(ChannelInfo obj : map.values()) {
-            System.out.println(obj.toString());
+        if (map==null)
+            map = myApplication.getChannelInfoMap();
+        int price =Integer.parseInt(map.get("C2").getPrice());
+        String fra= FrameOrder.getOutGoods(myApplication.spFrameNumber(),"C2",price,churat);
+        byte[] bytes=FrameOrder.getBytesOutGoods(myApplication.spFrameNumber(),"C2",price,churat);
+        myApplication.log("出货调用前");
+        myApplication.sendToPort(bytes,"34");
+        myApplication.log("出货调用后");
+        System.out.println(fra);
+
+    }
+    //清除事件
+    public void cleanEvent(View view){
+        byte[] bytes=FrameOrder.getBytesCleanUpGoods(myApplication.spFrameNumber());
+        myApplication.log("清除事件被调用前");
+        myApplication.sendToPort(bytes,"38");
+        myApplication.log("清除事件被调用后");
+    }
+
+    public  class MyReceiver extends BroadcastReceiver//作为内部类的广播接收者
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            String action = intent.getAction();
+            if (action.equals("tenray.outgoods.success"))
+            {
+                String data = intent.getStringExtra("tradedata");
+                System.out.println(TAG+data);
+                ToastUtil.show(ComActivity.this,"出货成功");
+            }
         }
     }
 }

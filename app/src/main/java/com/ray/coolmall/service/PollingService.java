@@ -1,7 +1,10 @@
 package com.ray.coolmall.service;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 
 import com.ray.coolmall.application.MyApplication;
@@ -19,9 +22,9 @@ public class PollingService extends Service {
     public static final String ACTION = "com.ray.coolmall.service.PollingService";
    private List<String> channels;
     private int listSize=-1;
-    private static int rollTimes = 10000;
+    private static int rollTimes = 28000;
     private MyApplication myApplication;
-
+    private PollReceiver pollReceiver;  //广播实例
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -29,9 +32,22 @@ public class PollingService extends Service {
 
     @Override
     public void onCreate() {
-        // initNotifiManager();
+
         super.onCreate();
         myApplication = (MyApplication) getApplication();
+
+        // 注册广播接收
+        pollReceiver = new PollReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("tenray.outgoods.success");    //只有持有相同的action的接受者才能接收此广播
+        registerReceiver(pollReceiver, filter);
+    }
+    @Override
+    public boolean onUnbind(Intent intent)
+    {
+         unregisterReceiver(pollReceiver);
+        System.out.println("Service:onUnbind");
+        return super.onUnbind(intent);
     }
 
     @Override
@@ -43,16 +59,10 @@ public class PollingService extends Service {
 
     //初始化通知栏配置
     private void initNotifiManager() {
-//        mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-//        int icon = R.mipmap.ic_launcher;
-//        mNotification = new Notification();
-//        mNotification.icon = icon;
-//        mNotification.tickerText = "New Message";
-//        mNotification.defaults |= Notification.DEFAULT_SOUND;
-//        mNotification.flags = Notification.FLAG_AUTO_CANCEL;
+
     }
 
-    //弹出Notification
+    int num;
     private void sendRollCommand() {
         rollTimes++;
         if (rollTimes > 65500)
@@ -68,8 +78,9 @@ public class PollingService extends Service {
                 }
             }
             else {
-                byte[] bytes = FrameOrder.getBytesRoll(rollTimes);
-                myApplication.sendToPort(bytes, "02");
+                    //发送交易数据给主板
+                    byte[] bytes = FrameOrder.getBytesTradeDate(rollTimes);
+                    myApplication.sendToPort(bytes, "36");
             }
         } catch (Exception e) {
 
@@ -91,16 +102,26 @@ public class PollingService extends Service {
             sendRollCommand();
             count++;
             //当除计数能被5整时弹出通知
-            if (count % 5 == 0) {
+            if (count % 50 == 0) {
                 System.out.println("New message!" + count);
             }
         }
     }
 
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        myApplication.log("---------程序终止的时候执行-------");
-        System.out.println("Service:onDestroy");
+
+    public  class PollReceiver extends BroadcastReceiver//作为内部类的广播接收者
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            String action = intent.getAction();
+            if (action.equals("tenray.outgoods.success"))
+            {
+                String data = intent.getStringExtra("tradedata");
+                System.out.println("PollingService:"+data);
+                //也可以终止广播,权限小的接收者就接收不到广播了
+               // abortBroadcast();
+            }
+        }
     }
 }

@@ -220,8 +220,10 @@ public class FrameOrder {
         String priceFrame = FrameUtil.hiString4Bytes(price) + " ";
         String payModeFrame = FrameUtil.hiString4Bytes(payMode) + " ";
         String tradeNumFrame = FrameUtil.hiString4Bytes(FrameUtil.nextInt()) + " FF FF FF FF 05 05 05 05";
-        if (payMode == 0)
+        if (payMode == 0) {
+            priceFrame="00 00 00 00 ";
             tradeNumFrame = "";
+        }
         String dataFrame = channelFrame + priceFrame + payModeFrame + tradeNumFrame;
         //DATA  Length
         String dataLengthFrame = getDatalength(dataFrame);
@@ -388,7 +390,6 @@ public class FrameOrder {
         String orderNum = " 39 ";
         //3. DATA
         String dataFrame = "";
-
         //4. DATA  Length
         String dataLengthFrame = "00 00";
         //5. return 命令常量 comHead,  帧编号, 命令号,  DATA Length,  DATA

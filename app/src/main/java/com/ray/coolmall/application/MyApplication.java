@@ -1,6 +1,7 @@
 package com.ray.coolmall.application;
 
 import android.app.Application;
+import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -46,6 +47,9 @@ public class MyApplication extends Application {
     private String filePath = "";
     private String fileName = "";
     private static String  orderCode;
+    private static  int mMoney;
+    //流水号 变化说明有成功交易
+    private static int mSerialNumber=0;
     //同步时间
     private static final int iSynTime = 101;
     //测试连接
@@ -75,44 +79,75 @@ public class MyApplication extends Application {
                     backStr = "";
                     break;
                 case ROLL_PANEL:
+                    log("ROLL_PANEL"+returnStr);
                     break;
                 case DATA_PANEL:
                     setChannelData();
                     break;
                 case SYN_DATA_PANEL:
-
                     break;
                 case CONTROL_OUT_GOODS:
-
+                    System.out.println("CONTROL_OUT_GOODS"+returnStr);
                     break;
                 case TRADE_DATA_PANEL:
-
+                   //轮询36命令
+                    //分析数据
+                    analysisTradeData();
                     break;
                 case SYN_TIME:
-
                     break;
                 case CLEAN_UPGOODS_EVENT:
-
+                    //清除上货事件
+                    log("CLEAN_UPGOODS_EVENT"+returnStr);
                     break;
                 case WRITE_DATA_STORAGE:
-
                     break;
                 case iSynTime:
                     synTime();
                     break;
                 default:
-                    Log.i(TAG, "测试");
+                    System.out.println("returnStr"+returnStr);
+                    Log.i(TAG, "测试"+msg.what);
                     break;
             }
         }
     };
+    private void analysisTradeData() {
+        String str=returnStr;
+        String[] args = str.split(" ");
+        //log(returnStr);
+        //System.out.println(returnStr);
+       //                                流水号        价格           货道编号       支付类型       否已经成功支付标志     字节故障码                 交易编号  （为什么是32个字节）
+        //45 46 CB 06 00 36   38 00   03 00 00 00   FA 00 00 00    A2 00 00 00    01 00 00 00    01 00 00 00             04 00 00 00     31 32 33 A5 49 0C 01 00 0A 00 00 00 85 34 01 08 AA 07 00 00 00 86 01 00 FF FF FF FF
+        //45 46 CB 99 46 36 38 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 70 57 00 20 0A 00 00 00 85 34 01 08 AA 07 00 00 00 86 01 00 FF FF FF FF 05 05 05 05 80 1B
+              //     7              8 流水号
+        //45 46 CB A1 46 36 38 00   01 00 00 00   F4 01 00 00 C1 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 32 30 31 36 31 32 30 32 31 33 34 30 34 34 30 30 30 30 31 00 00 86 01 00 FF FF FF FF 05 05 05 05 71 4A
+        if (args[5].equals("36")){
+            String [] num=new String[]{args[8],args[9],args[10],args[11]};
+            String [] price=new String[]{args[12],args[13],args[14],args[15]};
+            //流水号
+            int number=FrameUtil.hiInt4String(num);
+            int mPrice=FrameUtil.hiInt4String(price);
+            if(number!=mSerialNumber){
+                mSerialNumber=number;
+                //发送广播
+                Intent intent = new Intent();
+                intent.setAction("tenray.outgoods.success");
+                String tradedata="mPrice:["+mPrice+"] number:["+number+"]";
+                intent.putExtra("tradedata", tradedata);
+                System.out.println("普通广播发送前");
+                this.sendBroadcast(intent);   //普通广播发送
+                System.out.println("普通广播发送后");
+                log(tradedata+" "+str);
+            }
+        }
+    }
 
     @Override
     public void onCreate() {
         // 程序创建的时候执行
         Log.d(TAG, "onCreate");
         super.onCreate();
-
         comPath = SpUtil.getString(this, Constants.COM_PATH, "");
         if (TextUtils.isEmpty(comPath)) {
             comPath = "/dev/ttyS2";
@@ -129,7 +164,7 @@ public class MyApplication extends Application {
         msg.what = iSynTime;
         mHandler.sendMessage(msg);
         initChannel();
-        PollingUtils.startPollingService(this, 500, PollingService.class, PollingService.ACTION);
+        PollingUtils.startPollingService(this, 700, PollingService.class, PollingService.ACTION);
     }
     //初始化货道
     public void  initChannel(){
@@ -210,16 +245,19 @@ public class MyApplication extends Application {
                                 //4 上位机发送货道数据给主板 值0x31
                                 break;
                             case "34":
+                                msg.what = CONTROL_OUT_GOODS;
                                 //5 上位机控制出货 值0x34
                                 break;
                             case "36":
                                 //6 上位机发送交易数据给主板 值0x36
+                                msg.what = TRADE_DATA_PANEL;
                                 break;
                             case "37":
                                 msg.what = 37;
                                 //7 同步时间  值0x37
                                 break;
                             case "38":
+                                msg.what = CLEAN_UPGOODS_EVENT;
                                 //8 上位机清除上货事件标志  值0x38
                                 break;
                             case "39":
@@ -301,12 +339,17 @@ public class MyApplication extends Application {
             int price=FrameUtil.hiInt4String(prices);
             int stock=FrameUtil.hiInt4String(stocks);
             int volume=FrameUtil.hiInt4String(volumes);
+            Set<String> sets=new HashSet<>();
             ChannelInfo channelInfo=new ChannelInfo();
+            sets.add("price:"+price);
             channelInfo.setName(chanelName);
+            sets.add("stock:"+stock);
             channelInfo.setPrice(price+"");
             channelInfo.setStock(stock);
             channelInfo.setVolume(volume);
+            sets.add("volume:"+volume);
             channelInfoMap.put(chanelName,channelInfo);
+            //SpUtil.putSet(this,chanelName,sets);
         }
     }
     public int spFrameNumber(){
@@ -331,6 +374,8 @@ public class MyApplication extends Application {
             Log.d(TAG, e.getMessage());
         }
     }
+
+
 
     public Map<String, ChannelInfo> getChannelInfoMap() {
         return channelInfoMap;
