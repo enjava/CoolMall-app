@@ -119,6 +119,7 @@ public class PollingService extends Service {
             {
                 String data = intent.getStringExtra("tradedata");
                 System.out.println("PollingService:"+data);
+                myApplication.log(data);
                 //也可以终止广播,权限小的接收者就接收不到广播了
                // abortBroadcast();
             }

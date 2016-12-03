@@ -215,16 +215,15 @@ public class FrameOrder {
         //命令号
         String orderNum = " 34 ";
         //DATA
-        /* 1. 4 字节货道编号 2.  4 字节货道价格 3. 4 字节支付方式 4.交易编号，长度不能超过31 个字节，以null 结尾*/
+        //    A1 00 00 00       64 00 00 00      02 00 00 00     00 00 00 00      31 32 33 34 30 00 CB 64
+        /* 1. 4 字节货道编号 2.  4 字节货道价格 3. 4 字节商品ID  4. 4 字节支付方式 4.交易编号，长度不能超过31 个字节，以null 结尾*/
         String channelFrame = " " + channel + " 00 00 00 ";
         String priceFrame = FrameUtil.hiString4Bytes(price) + " ";
+        String productId="00 00 00 00 ";
         String payModeFrame = FrameUtil.hiString4Bytes(payMode) + " ";
-        String tradeNumFrame = FrameUtil.hiString4Bytes(FrameUtil.nextInt()) + " FF FF FF FF 05 05 05 05";
-        if (payMode == 0) {
-            priceFrame="00 00 00 00 ";
-            tradeNumFrame = "";
-        }
-        String dataFrame = channelFrame + priceFrame + payModeFrame + tradeNumFrame;
+        String tradeNumFrame = FrameUtil.hiString4Bytes(FrameUtil.nextInt()) + " 30 00";
+
+        String dataFrame = channelFrame + priceFrame+productId + payModeFrame + tradeNumFrame;
         //DATA  Length
         String dataLengthFrame = getDatalength(dataFrame);
         return comHead + frameNum + orderNum + dataLengthFrame + dataFrame;
@@ -254,7 +253,14 @@ public class FrameOrder {
     public static String getOutGoods(int frameId, String channel, int price) {
         return getOutGoods(frameId, channel, price, 0);
     }
-
+    /**
+     * 5 上位机控制出货
+     *
+     * @param frameId 帧编号
+     * @param channel 货道编号（两位16进制，如A1  C3等）
+     * @param price   价格
+     * @return 出货命令
+     */
     public static byte[] getBytesOutGoods(int frameId, String channel, int price) {
         return FrameUtil.hexStringToBytes(FrameUtil.getCRCStr(getOutGoods(frameId, channel, price)));
     }

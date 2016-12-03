@@ -27,9 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.ContentValues.TAG;
 
@@ -39,13 +37,14 @@ import static android.content.ContentValues.TAG;
 
 public class MyApplication extends Application {
     private SerialPortUtil serialport = null;
-    private Map<String,ChannelInfo> channelInfoMap= new ConcurrentHashMap<String,ChannelInfo>();
-    private List<String> channels;
+    //private Map<String,ChannelInfo> channelInfoMap= new ConcurrentHashMap<String,ChannelInfo>();
+    private List<String> channels=new ArrayList<>();
     private String returnStr = "";
     private String backStr = "";
     private LogWriterUtil mLogWriter;
     private String filePath = "";
     private String fileName = "";
+    private boolean first=true;
     private static String  orderCode;
     private static  int mMoney;
     //流水号 变化说明有成功交易
@@ -129,6 +128,10 @@ public class MyApplication extends Application {
             int number=FrameUtil.hiInt4String(num);
             int mPrice=FrameUtil.hiInt4String(price);
             if(number!=mSerialNumber){
+                if (first) {
+                    first = false;
+                    return;
+                }
                 mSerialNumber=number;
                 //发送广播
                 Intent intent = new Intent();
@@ -168,22 +171,31 @@ public class MyApplication extends Application {
     }
     //初始化货道
     public void  initChannel(){
-       Set<String> channelSet= SpUtil.getSet(this,Constants.CHANEL_NAME,null);
-        if (channelSet==null) {
+
             String[] mProductChnanels = new String[]{
-                    "A1", "A3", "A5", "A7", "B1",
-                    "B2", "B3", "B4", "B5", "C1",
-                    "C2", "C3", "C4", "C5", "C6",
-                    "C7", "C8", "D6", "E3", "E5"
+                    "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8",
+                    "B1", "B2", "B3", "B4", "B5",
+                    "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
+                    "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
+                    "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
+                    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"
             };
-            channelSet = new HashSet<String>();
-            for (int i = 0; i < mProductChnanels.length; i++) {
-                channelSet.add(mProductChnanels[i]);
-                channels.add(mProductChnanels[i]);
+        runChannel(mProductChnanels);
+    }
+
+    public void runChannel( final String[] mProductChnanels){
+        new Thread(){
+
+            @Override
+            public void run() {
+                Set<String>   channelSet = new HashSet<String>();
+                for (int i = 0; i < mProductChnanels.length; i++) {
+                    channelSet.add(mProductChnanels[i]);
+                    if (SpUtil.getSet(MyApplication.this,mProductChnanels[i],null)==null)
+                        channels.add(mProductChnanels[i]);
+                }
             }
-            SpUtil.putSet(this,Constants.CHANEL_NAME,channelSet);
-        }else
-            channels=  new ArrayList<String>(channelSet);
+        }.start();
 
     }
 
@@ -308,23 +320,29 @@ public class MyApplication extends Application {
         boolean result=false;
         try {
             if (serialport.getmSerialPort() != null) {
-                for (int i = 0; i < 5;i++ ) {
+                System.out.println("开始->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
+                for (int i = 0; i < 3;i++ ) {
                     if(i>0) {
                         System.out.println(i+"orderCode:"+orderCode+" order:"+order);
                         log(i+"orderCode:"+orderCode+" order:"+order);
                     }
-                    if(order.equals("30"))
-                        order="30";
                     serialport.sendToPort(bytes);
-                    Thread.sleep(200);
-                    if (order.equals(orderCode)) {
-                        result=true;
-                        break;
+                    for (int j=0;j<45;j++)
+                    {
+                        Thread.sleep(10);
+                        if (order.equals(orderCode)) {
+                            result=true;
+                            System.out.println("结束A->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
+                            return result;
+                        }
+
                     }
+
                 }
             }
         } catch (Exception e) {
         }
+        System.out.println("结束B->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
         return result;
     }
 
@@ -340,16 +358,11 @@ public class MyApplication extends Application {
             int stock=FrameUtil.hiInt4String(stocks);
             int volume=FrameUtil.hiInt4String(volumes);
             Set<String> sets=new HashSet<>();
-            ChannelInfo channelInfo=new ChannelInfo();
             sets.add("price:"+price);
-            channelInfo.setName(chanelName);
             sets.add("stock:"+stock);
-            channelInfo.setPrice(price+"");
-            channelInfo.setStock(stock);
-            channelInfo.setVolume(volume);
             sets.add("volume:"+volume);
-            channelInfoMap.put(chanelName,channelInfo);
-            //SpUtil.putSet(this,chanelName,sets);
+            ChannelInfo channelInfo=new ChannelInfo(sets);
+            SpUtil.putSet(this,chanelName,sets);
         }
     }
     public int spFrameNumber(){
@@ -376,10 +389,10 @@ public class MyApplication extends Application {
     }
 
 
-
-    public Map<String, ChannelInfo> getChannelInfoMap() {
-        return channelInfoMap;
-    }
+//
+//    public Map<String, ChannelInfo> getChannelInfoMap() {
+//        return channelInfoMap;
+//    }
 
     public List<String> getChannels() {
         return channels;

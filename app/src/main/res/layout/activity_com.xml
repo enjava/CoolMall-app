@@ -4,104 +4,269 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg"
     android:weightSum="1">
-    <TextView
-        android:text="返回结果"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:textColor="#000"
-        android:id="@+id/textView3" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:hint="接收主板返回的结果"
-        android:textSize="12dp"
-        android:id="@+id/editText3"
-        android:layout_weight="0.12" />
 
-    <TextView
-        android:text="命令"
-        android:textSize="18dp"
-        android:textColor="#000"
-        android:gravity="center_horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView4" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:textSize="12dp"
-        android:hint="要发送的命令，勾选【不需要CRC校验】时，内部已经做CRC校验，取消勾选时，一定要是CRC校验后的命令"
-        android:id="@+id/editText4"
-        android:layout_weight="0.08" />
-    <CheckBox
-        android:text="不需要CRC校验"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:checked="true"
-        android:id="@+id/cb" />
-    <Button
-        android:text="发送命令"
-        android:textColor="#000"
-        android:onClick="sendComand"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/button" />
-
-    <Button
-        android:text="同步时间"
-        android:textColor="#000"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="synTime"
-        android:id="@+id/button2" />
-    <Button
-        android:text="C3"
-        android:textColor="#000"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="outGoods"
-        android:id="@+id/button4" />
-    <Button
-        android:text="CleanUp"
-        android:textColor="#000"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="cleanEvent"
-        android:id="@+id/button5" />
-    <TextView
-        android:text="设置串口名"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#000"
-        android:id="@+id/textView" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-    <EditText
-        android:layout_width="201dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="/dev/ttyS2"
-        android:id="@+id/dtced" />
 
-        <Button
-            android:text="更改"
+        android:orientation="vertical">
+        <TextView
+            android:text="货道"
+            android:textSize="18dp"
+            android:textColor="#FFF"
+            android:gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="10"
-            android:onClick="setComName"
+            android:id="@+id/textView4" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+       android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="5dp"
+        android:paddingLeft="10dp"
+        android:gravity="left|center_vertical"
+        android:background="@drawable/ed_btn"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:hint="要出货的货道"
+        android:id="@+id/btn_ed"    />
+
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginLeft="20dp"
+       android:layout_marginRight="20dp"
+       android:orientation="horizontal">
+    <Button
+        android:text="A"
+        android:textColor="#000"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:layout_height="wrap_content"
+        android:background="@drawable/me_number_selector"
+        android:onClick="onClick"
+        android:id="@+id/buttonA" />
+       <Button
+           android:text="B"
+           android:textColor="#000"
+           android:layout_width="0dp"
+           android:layout_weight="1"
+           android:layout_margin="5dp"
+           android:textSize="26dp"
+           android:textStyle="bold"
+           android:background="@drawable/me_number_selector"
+           android:layout_height="wrap_content"
+           android:onClick="onClick"
+           android:id="@+id/buttonB" />
+       <Button
+           android:text="C"
+           android:textColor="#000"
+           android:layout_width="0dp"
+           android:layout_weight="1"
+           android:layout_margin="5dp"
+           android:textSize="26dp"
+           android:textStyle="bold"
+           android:background="@drawable/me_number_selector"
+           android:layout_height="wrap_content"
+           android:onClick="onClick"
+           android:id="@+id/buttonC" />
+       <Button
+           android:text="D"
+           android:textColor="#000"
+           android:layout_width="0dp"
+           android:layout_weight="1"
+           android:layout_margin="5dp"
+           android:textSize="26dp"
+           android:textStyle="bold"
+           android:background="@drawable/me_number_selector"
+           android:layout_height="wrap_content"
+           android:onClick="onClick"
+           android:id="@+id/buttonD" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:orientation="horizontal">
+        <Button
+            android:text="E"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/buttonE" />
+        <Button
+            android:text="1"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/button1" />
+        <Button
+            android:text="2"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/button2" />
+        <Button
+            android:text="3"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
             android:id="@+id/button3" />
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:orientation="horizontal">
+        <Button
+            android:text="F"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/buttonF" />
+        <Button
+            android:text="4"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/button4" />
+        <Button
+            android:text="5"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/button5" />
+        <Button
+            android:text="6"
+            android:textColor="#000"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:textSize="26dp"
+            android:textStyle="bold"
+            android:background="@drawable/me_number_selector"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/button6" />
+    </LinearLayout>
 
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+    android:orientation="horizontal">
+    <Button
+        android:text="微信"
+        android:textColor="#000"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:background="@drawable/me_number_selector"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:id="@+id/btn_weixin" />
+    <Button
+        android:text="7"
+        android:textColor="#000"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:background="@drawable/me_number_selector"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:id="@+id/button7" />
+    <Button
+        android:text="8"
+        android:textColor="#000"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:background="@drawable/me_number_selector"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:id="@+id/button8" />
+    <Button
+        android:text="支付宝"
+        android:textColor="#000"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:background="@drawable/me_number_selector"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:id="@+id/btn_alipay" />
+</LinearLayout>
+
+    <TextView
+        android:text="请选择支付方式"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        android:textColor="#FFF"
+        android:gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv2" />
+    </LinearLayout>
 
 
 </LinearLayout>
