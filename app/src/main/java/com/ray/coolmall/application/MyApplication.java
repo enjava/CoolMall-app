@@ -37,18 +37,16 @@ import static android.content.ContentValues.TAG;
 
 public class MyApplication extends Application {
     private SerialPortUtil serialport = null;
-    //private Map<String,ChannelInfo> channelInfoMap= new ConcurrentHashMap<String,ChannelInfo>();
-    private List<String> channels=new ArrayList<>();
+    private List<String> channels = new ArrayList<>();
     private String returnStr = "";
     private String backStr = "";
     private LogWriterUtil mLogWriter;
     private String filePath = "";
     private String fileName = "";
-    private boolean first=true;
-    private static String  orderCode;
-    private static  int mMoney;
+    private boolean first = true;
+    private static String orderCode;
     //流水号 变化说明有成功交易
-    private static int mSerialNumber=0;
+    private static int mSerialNumber = 0;
     //同步时间
     private static final int iSynTime = 101;
     //测试连接
@@ -78,7 +76,7 @@ public class MyApplication extends Application {
                     backStr = "";
                     break;
                 case ROLL_PANEL:
-                    log("ROLL_PANEL"+returnStr);
+                    log("ROLL_PANEL" + returnStr);
                     break;
                 case DATA_PANEL:
                     setChannelData();
@@ -86,10 +84,10 @@ public class MyApplication extends Application {
                 case SYN_DATA_PANEL:
                     break;
                 case CONTROL_OUT_GOODS:
-                    System.out.println("CONTROL_OUT_GOODS"+returnStr);
+                    System.out.println("CONTROL_OUT_GOODS" + returnStr);
                     break;
                 case TRADE_DATA_PANEL:
-                   //轮询36命令
+                    //轮询36命令
                     //分析数据
                     analysisTradeData();
                     break;
@@ -97,7 +95,7 @@ public class MyApplication extends Application {
                     break;
                 case CLEAN_UPGOODS_EVENT:
                     //清除上货事件
-                    log("CLEAN_UPGOODS_EVENT"+returnStr);
+                    log("CLEAN_UPGOODS_EVENT" + returnStr);
                     break;
                 case WRITE_DATA_STORAGE:
                     break;
@@ -105,47 +103,43 @@ public class MyApplication extends Application {
                     synTime();
                     break;
                 default:
-                    System.out.println("returnStr"+returnStr);
-                    Log.i(TAG, "测试"+msg.what);
+                    System.out.println("returnStr" + returnStr);
+                    Log.i(TAG, "测试" + msg.what);
                     break;
             }
         }
     };
+    //分析交易数据(轮询)
     private void analysisTradeData() {
-        String str=returnStr;
+        String str = returnStr;
         String[] args = str.split(" ");
-        //log(returnStr);
-        //System.out.println(returnStr);
-       //                                流水号        价格           货道编号       支付类型       否已经成功支付标志     字节故障码                 交易编号  （为什么是32个字节）
-        //45 46 CB 06 00 36   38 00   03 00 00 00   FA 00 00 00    A2 00 00 00    01 00 00 00    01 00 00 00             04 00 00 00     31 32 33 A5 49 0C 01 00 0A 00 00 00 85 34 01 08 AA 07 00 00 00 86 01 00 FF FF FF FF
-        //45 46 CB 99 46 36 38 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 70 57 00 20 0A 00 00 00 85 34 01 08 AA 07 00 00 00 86 01 00 FF FF FF FF 05 05 05 05 80 1B
-              //     7              8 流水号
-        //45 46 CB A1 46 36 38 00   01 00 00 00   F4 01 00 00 C1 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 32 30 31 36 31 32 30 32 31 33 34 30 34 34 30 30 30 30 31 00 00 86 01 00 FF FF FF FF 05 05 05 05 71 4A
-        if (args[5].equals("36")){
-            String [] num=new String[]{args[8],args[9],args[10],args[11]};
-            String [] price=new String[]{args[12],args[13],args[14],args[15]};
-            //流水号
-            int number=FrameUtil.hiInt4String(num);
-            int mPrice=FrameUtil.hiInt4String(price);
-            if(number!=mSerialNumber){
-                if (first) {
-                    first = false;
-                    return;
-                }
-                mSerialNumber=number;
-                //发送广播
-                Intent intent = new Intent();
-                intent.setAction("tenray.outgoods.success");
-                String tradedata="mPrice:["+mPrice+"] number:["+number+"]";
-                intent.putExtra("tradedata", tradedata);
-                System.out.println("普通广播发送前");
-                this.sendBroadcast(intent);   //普通广播发送
-                System.out.println("普通广播发送后");
-                log(tradedata+" "+str);
+        String[] num = new String[]{args[8], args[9], args[10], args[11]};
+        String[] price = new String[]{args[12], args[13], args[14], args[15]};
+        String channel = args[16];
+        String[] payTypes = new String[]{args[20], args[21], args[22], args[23]};
+        //流水号
+        int number = FrameUtil.hiInt4String(num);
+        int mPrice = FrameUtil.hiInt4String(price);
+        int payType = FrameUtil.hiInt4String(payTypes);
+        if (number != mSerialNumber ) {
+            mSerialNumber = number;
+            if (first)
+            {
+                first=false;
+                return;
             }
+            //发送广播
+            Intent intent = new Intent();
+            intent.setAction("tenray.outgoods.success");
+            String tradedata = "价格:[" + mPrice + "] 流程号:[" + number + "] 货道:[" + channel + "] 支付方式:[" + payType + "]";
+            intent.putExtra("tradedata", tradedata);
+            System.out.println("普通广播发送前");
+            this.sendBroadcast(intent);   //普通广播发送
+            System.out.println("普通广播发送后");
+            log(tradedata);
         }
-    }
 
+    }
     @Override
     public void onCreate() {
         // 程序创建的时候执行
@@ -169,29 +163,29 @@ public class MyApplication extends Application {
         initChannel();
         PollingUtils.startPollingService(this, 700, PollingService.class, PollingService.ACTION);
     }
-    //初始化货道
-    public void  initChannel(){
 
-            String[] mProductChnanels = new String[]{
-                    "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8",
-                    "B1", "B2", "B3", "B4", "B5",
-                    "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
-                    "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
-                    "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
-                    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"
-            };
+    //初始化货道
+    public void initChannel() {
+        String[] mProductChnanels = new String[]{
+                "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8",
+                "B1", "B2", "B3", "B4", "B5",
+                "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
+                "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
+                "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
+                "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"
+        };
         runChannel(mProductChnanels);
     }
-
-    public void runChannel( final String[] mProductChnanels){
-        new Thread(){
+    //线程写货道数据的SP
+    public void runChannel(final String[] mProductChnanels) {
+        new Thread() {
 
             @Override
             public void run() {
-                Set<String>   channelSet = new HashSet<String>();
+                Set<String> channelSet = new HashSet<String>();
                 for (int i = 0; i < mProductChnanels.length; i++) {
                     channelSet.add(mProductChnanels[i]);
-                    if (SpUtil.getSet(MyApplication.this,mProductChnanels[i],null)==null)
+                    if (SpUtil.getSet(MyApplication.this, mProductChnanels[i], null) == null)
                         channels.add(mProductChnanels[i]);
                 }
             }
@@ -199,10 +193,11 @@ public class MyApplication extends Application {
 
     }
 
+    //初始化 log
     public void initLogWriterUtil() {
         File logf = new File(filePath + fileName);
         try {
-            mLogWriter = LogWriterUtil.open(logf.getAbsolutePath(),true);
+            mLogWriter = LogWriterUtil.open(logf.getAbsolutePath(), true);
             log("---------程序开始执行-------");
         } catch (IOException e) {
             Log.d(TAG, e.getMessage());
@@ -274,6 +269,7 @@ public class MyApplication extends Application {
                                 break;
                             case "39":
                                 //9 上位机通知主板写货道数据到存储器 值0x39
+                                msg.what = WRITE_DATA_STORAGE;
                                 break;
                             default:
                                 break;
@@ -317,55 +313,45 @@ public class MyApplication extends Application {
 
     public synchronized boolean sendToPort(byte[] bytes, String order) {
         orderCode = "";
-        boolean result=false;
+        boolean result = false;
         try {
             if (serialport.getmSerialPort() != null) {
-                System.out.println("开始->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
-                for (int i = 0; i < 3;i++ ) {
-                    if(i>0) {
-                        System.out.println(i+"orderCode:"+orderCode+" order:"+order);
-                        log(i+"orderCode:"+orderCode+" order:"+order);
-                    }
+                for (int i = 0; i < 2; i++) {
                     serialport.sendToPort(bytes);
-                    for (int j=0;j<45;j++)
-                    {
+                    for (int j = 0; j < 45; j++) {
                         Thread.sleep(10);
                         if (order.equals(orderCode)) {
-                            result=true;
-                            System.out.println("结束A->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
+                            result = true;
                             return result;
                         }
-
                     }
-
                 }
             }
-        } catch (Exception e) {
-        }
-        System.out.println("结束B->"+CommonUtil.formatDate("[HH:mm:ss:SSS]"));
+        } catch (Exception e) { }
         return result;
     }
 
-    public void setChannelData(){
+    public void setChannelData() {
         String[] args = returnStr.split(" ");
         System.out.println(returnStr);
-        if (args[5].equals("30")){
-            String chanelName=args[8];
-            String [] prices=new String[]{args[20],args[21],args[22],args[23]};
-            String [] stocks=new String[]{args[28],args[29],args[30],args[31]};
-            String [] volumes=new String[]{args[12],args[13],args[14],args[15]};
-            int price=FrameUtil.hiInt4String(prices);
-            int stock=FrameUtil.hiInt4String(stocks);
-            int volume=FrameUtil.hiInt4String(volumes);
-            Set<String> sets=new HashSet<>();
-            sets.add("price:"+price);
-            sets.add("stock:"+stock);
-            sets.add("volume:"+volume);
-            ChannelInfo channelInfo=new ChannelInfo(sets);
-            SpUtil.putSet(this,chanelName,sets);
+        if (args[5].equals("30")) {
+            String chanelName = args[8];
+            String[] prices = new String[]{args[20], args[21], args[22], args[23]};
+            String[] stocks = new String[]{args[28], args[29], args[30], args[31]};
+            String[] volumes = new String[]{args[12], args[13], args[14], args[15]};
+            int price = FrameUtil.hiInt4String(prices);
+            int stock = FrameUtil.hiInt4String(stocks);
+            int volume = FrameUtil.hiInt4String(volumes);
+            Set<String> sets = new HashSet<>();
+            sets.add("price:" + price);
+            sets.add("stock:" + stock);
+            sets.add("volume:" + volume);
+            ChannelInfo channelInfo = new ChannelInfo(sets);
+            SpUtil.putSet(this, chanelName, sets);
         }
     }
-    public int spFrameNumber(){
+
+    public int spFrameNumber() {
         int itimes = SpUtil.getInt(this, Constants.FRAME_NUMBER, 0);
         if (itimes > 65000)
             itimes = 0;

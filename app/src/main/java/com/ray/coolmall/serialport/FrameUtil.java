@@ -89,14 +89,6 @@ public class FrameUtil {
     public static int hiInt4String(String [] bytes){
         // 拼装成 正确的int
         return   Integer.parseInt(bytes[3]+bytes[2]+bytes[1]+bytes[0],16);
-//        Integer.parseInt(bytes[1],16);
-//        Integer.parseInt(bytes[2],16);
-//        Integer.parseInt(bytes[3],16);
-
-//        return toHexString((byte) (input & 0xff))+" "
-//                +toHexString((byte) ((input & 0xff00) >> 8))+" "
-//                +toHexString((byte) ((input & 0xff0000) >> 16))+" "
-//                +toHexString((byte) ((input & 0xff000000) >> 24));
     }
 
     public static int hiInt2String(String [] bytes){
